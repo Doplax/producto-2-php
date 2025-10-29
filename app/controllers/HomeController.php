@@ -16,4 +16,4 @@ class HomeController extends BaseController {
         $this->loadView('home', $data);
     }
 }
-?>
+

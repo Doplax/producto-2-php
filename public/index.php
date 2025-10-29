@@ -1,5 +1,6 @@
 <?php
 
+//ob_start();
 session_start();
 
 require_once '../app/config/config.php';
@@ -63,5 +64,5 @@ if (class_exists($fqcn)) {
     http_response_code(404);
     die('Error 404: La clase controladora "' . $fqcn . '" no fue encontrada.');
 }
-?>
+
 

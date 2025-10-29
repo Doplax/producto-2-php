@@ -42,5 +42,5 @@ class AdminController extends BaseController {
         $this->loadView('admin/calendar', $data);
     }
 }
-?>
+
 
