@@ -9,6 +9,7 @@ class AuthController extends BaseController
 
     public function index()
     {
+        $this->requireMethod('GET');
         $response = [
             'status' => 'success',
             'message' => 'API de Autenticación en línea.',
@@ -28,6 +29,7 @@ class AuthController extends BaseController
 
     public function authenticate()
     {
+        $this->requireMethod('POST');
         $email = $_POST['email'] ?? null;
         $password = $_POST['password'] ?? null;
 
@@ -58,7 +60,7 @@ class AuthController extends BaseController
 
     public function store_register()
     {
-
+        $this->requireMethod('POST');
         $name = $_POST['name'] ?? null;
         $email = $_POST['email'] ?? null;
         $password = $_POST['password'] ?? null;
@@ -85,7 +87,7 @@ class AuthController extends BaseController
 
     public function getcurrentuser()
     {
-
+        $this->requireMethod('GET');
         if (isset($_SESSION['user_id'])) {
 
             $response = [
@@ -114,6 +116,7 @@ class AuthController extends BaseController
 
     public function logout()
     {
+        $this->requireMethod('GET');
         session_unset();
         session_destroy();
 
