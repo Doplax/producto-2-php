@@ -34,6 +34,7 @@ DB_HOST=db
 DB_NAME=isla_transfers
 DB_USER=user
 DB_PASS=pass
+DB_ROOT_PASS=root
 ```
 
 ---
@@ -112,8 +113,6 @@ _(para acceder vía navegador)_
 | **Servidor**   | db    |
 | **Usuario**    | root  |
 | **Contraseña** | root  |
-
-
 
 Para regenerar el Auto Loader después de añadir un controlador:
 
