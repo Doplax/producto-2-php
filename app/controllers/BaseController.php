@@ -2,8 +2,17 @@
 
 namespace App\Controllers;
 
+use App\Core\Database;
+
 class BaseController
 {
+    protected $db; //propiedad para guardar la connexión a bbdd
+
+    public function __construct() //se ejecuta el constructor y guarda la instacia de Database en la propiedad
+    {
+        $database = new Database();
+        $this->db = $database->connection;
+    }
 
 
     protected function loadView($viewName, $data = [])
