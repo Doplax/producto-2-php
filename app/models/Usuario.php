@@ -1,25 +1,28 @@
-<?php 
+<?php
 
-require_once __DIR__ . '/../core/Database.php';
+namespace App\Models;
 
-class Usuario {
+
+class Usuario
+{
     private $db;
 
-    public function __construct() {
-        // Creamos la conexión a la base de datos usando la clase Database
-        $database = new Database();
-        $this->db = $database->connection;
+    public function __construct($db_connection)
+    {
+        // Creamos la conexión a la base de datos 
+        $this->db = $db_connection;
     }
 
     /**
      *Obtener los datos personales del usuario por su ID.
      */
-    public function obtenerDatosPersonales($id_viajero) {
+    public function obtenerDatosPersonales($id_viajero)
+    {
         // Consulta SQL para traer todos los campos personales del viajero
         $sql = "SELECT nombre, apellido1, apellido2, direccion, codigoPostal, ciudad, pais, email 
                 FROM transfer_viajeros
                 WHERE id_viajero = ?";
-        
+
         // Preparamos la consulta y asociamos el parámetro
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $id_viajero);
@@ -33,7 +36,8 @@ class Usuario {
     /**
      * Actualizar los datos personales del usuario (nombre, email, dirección, etc.)
      */
-    public function actualizarDatosPersonales($id_viajero, $nombre, $apellido1, $apellido2, $direccion, $codigoPostal, $ciudad, $pais, $email) {
+    public function actualizarDatosPersonales($id_viajero, $nombre, $apellido1, $apellido2, $direccion, $codigoPostal, $ciudad, $pais, $email)
+    {
         $sql = "UPDATE transfer_viajeros 
                 SET nombre = ?, apellido1 = ?, apellido2 = ?, direccion = ?, codigoPostal = ?, ciudad = ?, pais = ?, email = ?
                 WHERE id_viajero = ?";
@@ -50,7 +54,8 @@ class Usuario {
      * Actualizar la contraseña del usuario.
      * La contraseña se guarda siempre encriptada con password_hash().
      */
-    public function actualizarContrasena($id_viajero, $nuevaContrasena) {
+    public function actualizarContrasena($id_viajero, $nuevaContrasena)
+    {
         // Hasheamos (encriptamos) la nueva contraseña antes de guardarla
         $hashContrasena = password_hash($nuevaContrasena, PASSWORD_DEFAULT);
 
@@ -63,4 +68,3 @@ class Usuario {
         return $stmt->execute();
     }
 }
-?>

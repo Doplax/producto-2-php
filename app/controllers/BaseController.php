@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-require_once '../app/core/Database.php';
+use App\Core\Database;
 
 class BaseController
 {
@@ -10,7 +10,7 @@ class BaseController
 
     public function __construct() //se ejecuta el constructor y guarda la instacia de Database en la propiedad
     {
-        $database = new \Database();
+        $database = new Database();
         $this->db = $database->connection;
     }
 
