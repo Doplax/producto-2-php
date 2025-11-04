@@ -1,8 +1,8 @@
 <?php 
 
-require_once '../app/core/Database.php';
+require_once __DIR__ . '/../core/Database.php';
 
-class User {
+class Usuario {
     private $db;
 
     public function __construct() {

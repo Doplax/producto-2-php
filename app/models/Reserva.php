@@ -1,5 +1,5 @@
 <?php
-require_once '../app/core/Database.php';
+require_once __DIR__ . '/../core/Database.php';
 
 class Reserva {
     private $db;
@@ -25,16 +25,16 @@ class Reserva {
                     r.fecha_vuelo_salida,
                     r.hora_vuelo_salida,
                     r.num_viajeros,
-                    v.Descripción 
+                    r.status, 
+                    v.Descripción AS descripcion_vehiculo, 
                     CASE 
                         WHEN r.id_hotel IS NULL THEN 'Creada por el usuario'
                         ELSE 'Creada por el administrador'
                     END AS origen_reserva
                 FROM transfer_reservas r
+                INNER JOIN transfer_viajeros tv ON r.email_cliente = tv.id_viajero 
                 LEFT JOIN transfer_vehiculo v ON r.id_vehiculo = v.id_vehiculo
-                WHERE r.email_cliente = (
-                    SELECT id_viajero FROM transfer_viajeros WHERE email = ?
-                )
+                WHERE tv.email = ? 
                 ORDER BY r.fecha_reserva DESC";
 
         $stmt = $this->db->prepare($sql);
