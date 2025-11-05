@@ -2,10 +2,11 @@
 
 namespace App\Controllers;
 
-use App\Controllers\BaseController;
+use App\Core\Controller;
 use App\Models\Usuario;
+use App\Helpers\ProfileMessageHelper; 
 
-class UsuarioController extends BaseController
+class UsuarioController extends Controller
 {
 
     // Declaramos la propiedad $userModel para guardar una instancia de la clase User
@@ -14,7 +15,7 @@ class UsuarioController extends BaseController
     // El constructor se ejecuta automáticamente al crear un objeto UserController
     public function __construct()
     {
-        //Se llama al constructor padre (BaseController)
+        //Se llama al constructor padre (Controller)
         parent::__construct();
 
         //si el usuario NO esta logeado se redirige al login.
@@ -32,23 +33,12 @@ class UsuarioController extends BaseController
      */
     public function mostrarPerfil()
     {
-        // 1. Obtener ID del usuario logeado desde la sesión.
-        // **Recordatorio**: ¡DEBES validar que la sesión exista!
-        // Usamos 'email_viajero' para el ejemplo, pero puede ser 'id_viajero'
-        $email_viajero = $_SESSION['email_viajero'] ?? 'test@example.com';
-
-        // Asumiremos que el modelo User ya tiene la lógica para obtener el ID si solo tienes el email
-        // O mejor: si el login guarda el ID, lo usamos. Usaremos un ID de ejemplo por ahora.
         $id_viajero = $_SESSION['id_viajero'] ?? 1;
-
-        // 2. Obtener los datos del modelo
         $datosUsuario = $this->userModel->obtenerDatosPersonales($id_viajero);
 
-        // 3. Cargar la vista usando la función loadView del BaseController
-        // Le pasamos 'perfil/perfil_view' y los datos en un array asociativo.
-        $this->loadView('user/myProfile', [
+        $this->loadView('user/my_profile', [
             'usuario' => $datosUsuario,
-            'mensaje' => $_GET['mensaje'] ?? null // Para mostrar mensajes después de una acción
+            'mensaje' => $_GET['mensaje'] ?? null,
         ]);
     }
 
@@ -57,7 +47,7 @@ class UsuarioController extends BaseController
      */
     public function actualizarDatos()
     {
-        // 1. Requerir que la petición sea POST, usando el método de BaseController
+        // 1. Requerir que la petición sea POST, usando el método de Controller
         $this->requireMethod('POST');
 
         // 2. Recoger y validar los datos del formulario
@@ -85,12 +75,12 @@ class UsuarioController extends BaseController
         );
 
         // 4. Redirigir con mensaje
-        $redirectURL = APP_URL . '/usuario/mostrarPerfil'; 
+        $redirectURL = APP_URL . '/usuario/mostrarPerfil';
 
         if ($exito) {
-            header('Location: ' . $redirectURL . '?mensaje=exito_datos');
+            header('Location: ' . $redirectURL . '?mensaje=' . ProfileMessageHelper::EXITO_DATOS);
         } else {
-            header('Location: ' . $redirectURL . '?mensaje=error_datos');
+            header('Location: ' . $redirectURL . '?mensaje=' . ProfileMessageHelper::ERROR_DATOS);
         }
         exit();
     }
@@ -113,14 +103,16 @@ class UsuarioController extends BaseController
             // 3. Llamar al modelo para actualizar
             $exito = $this->userModel->actualizarContrasena($id_viajero, $nuevaContrasena);
 
+            $redirectURL = APP_URL . '/usuario/mostrarPerfil';
+
             if ($exito) {
-                header('Location: /perfil?mensaje=exito_pass');
+                header('Location: ' . $redirectURL . '?mensaje=' . ProfileMessageHelper::EXITO_PASS);
             } else {
-                header('Location: /perfil?mensaje=error_bd_pass');
+                header('Location: ' . $redirectURL . '?mensaje=' . ProfileMessageHelper::ERROR_BD_PASS);
             }
         } else {
             // Si las contraseñas no coinciden o están vacías
-            header('Location: /perfil?mensaje=error_pass_mismatch');
+            header('Location: /perfil?mensaje=' . ProfileMessageHelper::ERROR_PASS_MISMATCH);
         }
         exit();
     }
