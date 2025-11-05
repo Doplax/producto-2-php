@@ -12,6 +12,8 @@ class ProfileMessageHelper
     const ERROR_PASS_MISMATCH = 'error_pass_mismatch';
     const ERROR_DESCONOCIDO = 'error_desconocido';
 
+    const ERROR_PASS_SHORT = 'error_pass_short';
+
     public static function getText(?string $mensaje): string
     {
         return match ($mensaje) {
@@ -20,6 +22,7 @@ class ProfileMessageHelper
             self::ERROR_DATOS => 'Error al actualizar los datos personales. Inténtalo de nuevo.',
             self::ERROR_BD_PASS => 'Error al guardar la nueva contraseña en la base de datos.',
             self::ERROR_PASS_MISMATCH => 'Las contraseñas no coinciden o están vacías. Inténtalo de nuevo.',
+            self::ERROR_PASS_SHORT => 'Tu contraseña es muy corta. Por favor, usa al menos 8 caracteres.',
             default => '',
         };
     }
