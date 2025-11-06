@@ -8,14 +8,11 @@ use App\Helpers\ProfileMessageHelper;
 
 class UsuarioController extends Controller
 {
-
-    // Declaramos la propiedad $userModel para guardar una instancia de la clase User
+    protected $db; 
     private $userModel;
 
-    // El constructor se ejecuta automáticamente al crear un objeto UserController
     public function __construct()
     {
-        //Se llama al constructor padre (Controller)
         parent::__construct();
 
         //si el usuario NO esta logeado se redirige al login.
@@ -25,12 +22,9 @@ class UsuarioController extends Controller
         $this->userModel = new Usuario();
     }
 
-    /**
-     * Muestra la página de perfil del usuario.
-     */
     public function mostrarPerfil()
     {
-        $id_viajero = $_SESSION['id_viajero'] ?? 1;
+        $id_viajero = $_SESSION['user_id']?? 1;
         $datosUsuario = $this->userModel->obtenerDatosPersonales($id_viajero);
 
         $this->loadView('user/my_profile', [
@@ -38,69 +32,86 @@ class UsuarioController extends Controller
             'mensaje' => $_GET['mensaje'] ?? null,
         ]);
     }
+   
+ public function actualizarDatos()
+{
+    $this->requireMethod('POST');
+    $id_viajero = $_SESSION['user_id'];
+    $redirectURL = APP_URL . '/usuario/mostrarPerfil';
 
-    /**
-     * Procesa la actualización de los datos personales (nombre, email, dirección).
-     */
-    public function actualizarDatos()
-    {
-        // 1. Requerir que la petición sea POST, usando el método de Controller
-        $this->requireMethod('POST');
+    $nombre = $_POST['nombre'] ?? null;
+    $apellido1 = $_POST['apellido1'] ?? null;
+    $apellido2 = $_POST['apellido2'] ?? null;
+    $direccion = $_POST['direccion'] ?? null;
+    $codigoPostal = $_POST['codigoPostal'] ?? null;
+    $ciudad = $_POST['ciudad'] ?? null;
+    $pais = $_POST['pais'] ?? null;
+    $email = $_POST['email'] ?? null;
 
-        // 2. Recoger y validar los datos del formulario
-        $id_viajero = $_SESSION['id_viajero'] ?? 1;
-        $nombre = $_POST['nombre'] ?? '';
-        $apellido1 = $_POST['apellido1'] ?? '';
-        $apellido2 = $_POST['apellido2'] ?? '';
-        $direccion = $_POST['direccion'] ?? '';
-        $codigoPostal = $_POST['codigoPostal'] ?? '';
-        $ciudad = $_POST['ciudad'] ?? '';
-        $pais = $_POST['pais'] ?? '';
-        $email = $_POST['email'] ?? '';
+    $campos = [
+        'nombre'       => $nombre,
+        'apellido1'    => $apellido1,
+        'apellido2'    => $apellido2,
+        'direccion'    => $direccion,
+        'codigoPostal' => $codigoPostal,
+        'ciudad'       => $ciudad,
+        'pais'         => $pais,
+        'email'        => $email,
+    ];
 
-        // 3. Llamar al modelo para actualizar
-        $exito = $this->userModel->actualizarDatosPersonales(
-            $id_viajero,
-            $nombre,
-            $apellido1,
-            $apellido2,
-            $direccion,
-            $codigoPostal,
-            $ciudad,
-            $pais,
-            $email
-        );
+    $camposVacios = array_filter($campos, fn($valor) => trim((string)$valor) === '');
 
-        // 4. Redirigir con mensaje
-        $redirectURL = APP_URL . '/usuario/mostrarPerfil';
-
-        if ($exito) {
-            header('Location: ' . $redirectURL . '?mensaje=' . ProfileMessageHelper::EXITO_DATOS);
-        } else {
-            header('Location: ' . $redirectURL . '?mensaje=' . ProfileMessageHelper::ERROR_DATOS);
-        }
+    if (!empty($camposVacios)) {
+        $mensaje = ProfileMessageHelper::ERROR_CAMPOS_VACIOS;
+        header('Location: ' . $redirectURL . '?mensaje=' . $mensaje);
         exit();
     }
 
-    /**
-     * Procesa la actualización de la contraseña.
-     */
+   
+    if (!filter_var($campos['email'], FILTER_VALIDATE_EMAIL)) {
+        $mensaje = ProfileMessageHelper::ERROR_EMAIL;
+        header('Location: ' . $redirectURL . '?mensaje=' . $mensaje);
+        exit();
+    }
+
+    
+    $exito = $this->userModel->actualizarDatosPersonales(
+        $id_viajero,
+        $nombre,
+        $apellido1,
+        $apellido2,
+        $direccion,
+        $codigoPostal,
+        $ciudad,
+        $pais,
+        $email
+    );
+
+    if ($exito) {
+        header('Location: ' . $redirectURL . '?mensaje=' . ProfileMessageHelper::EXITO_DATOS);
+    } else {
+        header('Location: ' . $redirectURL . '?mensaje=' . ProfileMessageHelper::ERROR_DATOS);
+    }
+    exit();
+}
+  
     public function actualizarContrasena()
     {
-        // 1. Requerir que la petición sea POST
         $this->requireMethod('POST');
 
         $id_viajero = $_SESSION['id_viajero'] ?? 1;
         $nuevaContrasena = $_POST['nueva_contrasena'] ?? '';
         $confirmarContrasena = $_POST['confirmar_contrasena'] ?? '';
 
-        // 2. Validación de la contraseña: debe coincidir
+        $redirectURL = APP_URL . '/usuario/mostrarPerfil';
+
+    
         if ($nuevaContrasena === $confirmarContrasena && !empty($nuevaContrasena)) {
-
-            // 3. Llamar al modelo para actualizar
+            if (strlen($nuevaContrasena) < 8) {
+            header('Location: ' . $redirectURL . '?mensaje=' . ProfileMessageHelper::ERROR_PASS_SHORT);
+            exit();
+        }
             $exito = $this->userModel->actualizarContrasena($id_viajero, $nuevaContrasena);
-
-            $redirectURL = APP_URL . '/usuario/mostrarPerfil';
 
             if ($exito) {
                 header('Location: ' . $redirectURL . '?mensaje=' . ProfileMessageHelper::EXITO_PASS);
@@ -108,8 +119,7 @@ class UsuarioController extends Controller
                 header('Location: ' . $redirectURL . '?mensaje=' . ProfileMessageHelper::ERROR_BD_PASS);
             }
         } else {
-            // Si las contraseñas no coinciden o están vacías
-            header('Location: /perfil?mensaje=' . ProfileMessageHelper::ERROR_PASS_MISMATCH);
+            header('Location:' . $redirectURL . '?mensaje=' . ProfileMessageHelper::ERROR_PASS_MISMATCH);
         }
         exit();
     }
