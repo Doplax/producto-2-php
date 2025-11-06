@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
+    <!-- Asegúrate de que esta ruta es correcta y el archivo CSS se está cargando -->
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/css/styles.css">
 
     <title><?php echo isset($title) ? $title : 'Isla Transfers'; ?></title>
@@ -22,43 +23,74 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
+                <!-- 
+                  ESTA ES LA SECCIÓN CORREGIDA
+                  Hemos eliminado 'div.left-side' y 'div.right-side'
+                  y hemos creado dos UL separados.
+                -->
                 <div class="collapse navbar-collapse" id="navbarNav">
+
+                    <!-- 1. MENÚ IZQUIERDA: con 'me-auto' -->
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="<?php echo APP_URL; ?>/home">Inicio</a>
+                        </li>
+                    </ul>
+
+                    <!-- 2. MENÚ DERECHA: con 'ms-auto' -->
                     <ul class="navbar-nav ms-auto">
-
-                        <!-- Modificación para añadir la sesión -->
                         <?php if (isset($_SESSION['user_id'])) : ?>
-                            <!-- si el usuario si esta logeado -->
-                            <li class="nav-item">
-                                <!-- Mostramos su nombre (guardado en la sesión) -->
-                                <span class="navbar-text text-white me-3">
-                                    Hola, <?php echo htmlspecialchars($_SESSION['user_name']); ?>
-                                </span>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="<?php echo APP_URL; ?>/usuario/mostrarPerfil">Mi Perfil</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="<?php echo APP_URL; ?>/auth/logout">Cerrar Sesión</a>
-                            </li>
 
+                            <?php
+                            // --- Lógica para el avatar ---
+                            $userName = $_SESSION['user_name'];
+                            $firstLetter = mb_strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
+                            $firstLetterSafe = htmlspecialchars($firstLetter);
+                            ?>
+
+                            <!-- Dropdown de Usuario -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="user-avatar me-2">
+                                        <?php echo $firstLetterSafe; ?>
+                                    </div>
+                                    <span class="d-none d-lg-inline">
+                                        Hola, <?php echo htmlspecialchars($userName); ?>
+                                    </span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarUserDropdown">
+                                    <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/usuario/mostrarPerfil">Mi Perfil</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/reservas/misReservas">Mis Reservas</a></li>
+
+                                    <?php
+                                    // Asume que guardas el rol en la sesión.
+                                    if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/admin/dashboard">Admin</a></li>
+                                    <?php endif; ?>
+
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/auth/logout">Cerrar Sesión</a></li>
+                                </ul>
+                            </li>
+                            <!-- Fin Dropdown de Usuario -->
 
                         <?php else: ?>
-                            <!-- Si el usuario no esta logeado-->
-                            <li class="nav-item">
-                                <a class="nav-link active" href="<?php echo APP_URL; ?>/home">Inicio</a>
-                            </li>
+                            <!-- Links para usuario no logueado -->
                             <li class="nav-item">
                                 <a class="nav-link" href="<?php echo APP_URL; ?>/auth/login">Login</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="<?php echo APP_URL; ?>/auth/register">Registro</a>
                             </li>
-
                         <?php endif; ?>
                     </ul>
-                </div>
-            </div>
+                    <!-- Fin Menú Derecha -->
+
+                </div> <!-- Fin .collapse -->
+            </div> <!-- Fin .container-fluid -->
         </nav>
     </header>
 
     <main class="container py-4">
+        <!-- El resto de tu página va aquí -->
