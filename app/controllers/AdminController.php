@@ -14,11 +14,7 @@ class AdminController extends Controller
         //Se llama al constructor padre (Controller)
         parent::__construct();
 
-        // TODO: Añadir seguridad para que solo admins puedan acceder
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: ' . APP_URL . '/auth/login');
-            exit;
-        }
+        $this->requiereLoginGuard();
 
         $this->userModel = new Usuario();
     }

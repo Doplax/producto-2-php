@@ -13,7 +13,7 @@ class ReservaController extends Controller
     protected $trayectoModel;
     protected $hotelModel;
 
-   public function __construct()
+    public function __construct()
     {
         // Aseguramos que el usuario esté logueado
         $this->requiereLoginGuard();
@@ -24,30 +24,30 @@ class ReservaController extends Controller
     }
 
     public function index()
-{
-    // Redirige a mostrarReservas o implementa aquí mismo
-    $this->mostrarReservas();
-}
-   public function mostrarReservas()
-{
-    // Obtenemos el ID del usuario logueado
-    $id_viajero = $_SESSION['user_id'] ?? 1;
+    {
+        // Redirige a mostrarReservas o implementa aquí mismo
+        $this->mostrarReservas();
+    }
+    public function mostrarReservas()
+    {
+        // Obtenemos el ID del usuario logueado
+        $id_viajero = $_SESSION['user_id'] ?? 1;
 
-    // Obtenemos todas las reservas de este usuario
-    $reservas = $this->reservaModel->getReservasPorEmail($id_viajero);
+        // Obtenemos todas las reservas de este usuario
+        $reservas = $this->reservaModel->getReservasPorEmail($id_viajero);
 
-    // Obtenemos los hoteles y trayectos para llenar el formulario
-    $hoteles = $this->hotelModel->getAll();
-    $trayectos = $this->trayectoModel->getAllTrayectos();
+        // Obtenemos los hoteles y trayectos para llenar el formulario
+        $hoteles = $this->hotelModel->getAll();
+        $trayectos = $this->trayectoModel->getAllTrayectos();
 
-    // Cargamos la vista con todos los datos necesarios
-    $this->loadView('reservas/crear_reserva', [
-        'reservas' => $reservas,
-        'hoteles' => $hoteles,
-        'trayectos' => $trayectos,
-        'mensaje' => $_GET['mensaje'] ?? null,
-    ]);
-}
+        // Cargamos la vista con todos los datos necesarios
+        $this->loadView('reservas/crear_reserva', [
+            'reservas' => $reservas,
+            'hoteles' => $hoteles,
+            'trayectos' => $trayectos,
+            'mensaje' => $_GET['mensaje'] ?? null,
+        ]);
+    }
 
     /**
      * Mostrar el formulario de creación de reserva
@@ -83,7 +83,7 @@ class ReservaController extends Controller
         $fecha_vuelo_salida = $_POST['fecha_vuelo_salida'] ?? null;
         $hora_vuelo_salida = $_POST['hora_vuelo_salida'] ?? null;
 
-  
+
         $exito = $this->reservaModel->crearReserva(
             $id_tipo_reserva,
             $id_destino,
@@ -112,5 +112,28 @@ class ReservaController extends Controller
         }
     }
 
+    public function listarReservas()
+    {
+        $user_email = $_SESSION['user_email'];
+        $user_id    = $_SESSION['user_id'];
 
+        if ($user_email === 'admin@islatransfers.com') {
+            $reservas = $this->reservaModel->getTodasReservas(); //adicionar las fucnionalidades extras de admim
+        } else {
+            $reservas = $this->reservaModel->getReservasPorEmail($user_email);
+        }
+
+        // Obtener hoteles para traducir id_destino a nombre
+        $hoteles = $this->hotelModel->getAll();
+        $hotelesMap = [];
+        foreach ($hoteles as $hotel) {
+            $hotelesMap[$hotel['id_hotel']] = $hotel['usuario'];
+        }
+
+        $this->loadView('user/mis_reservas', [
+            'reservas'   => $reservas,
+            'hotelesMap' => $hotelesMap,
+            'user_id'    => $user_id
+        ]);
+    }
 }
