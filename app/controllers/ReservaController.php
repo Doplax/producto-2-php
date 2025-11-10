@@ -132,84 +132,6 @@ public function crearReservaPost() //POST
     }
 }
 
-public function crearReservaPostApi() // POST
-{
-    header('Content-Type: application/json');
-    $this->requireMethod('POST');
-
-    $id_tipo_reserva = $_POST['id_tipo_reserva'] ?? null;
-    $id_destino = $_POST['id_destino'] ?? null;
-    $num_viajeros = $_POST['num_viajeros'] ?? 1;
-    $id_vehiculo = $_POST['id_vehiculo'] ?? 1;
-
-    $fecha_entrada = $_POST['fecha_entrada'] ?? null;
-    $hora_entrada = $_POST['hora_entrada'] ?? null;
-    $numero_vuelo_entrada = $_POST['numero_vuelo_entrada'] ?? null;
-    $origen_vuelo_entrada = $_POST['origen_vuelo_entrada'] ?? null;
-
-    $fecha_vuelo_salida = $_POST['fecha_vuelo_salida'] ?? null;
-    $hora_vuelo_salida = $_POST['hora_vuelo_salida'] ?? null;
-
-    $email_cliente = $_SESSION['user_email'] ?? null;
-    $id_admin = null;
-
-    if ($this->isAdminLoggedIn()) {
-        $email_cliente = $_POST['email_cliente'] ?? null;
-        $id_admin = $_POST['id_admin'] ?? null;
-
-        if (!$email_cliente || !$id_admin) {
-            echo json_encode([
-                'success' => false,
-                'message' => "Como administrador, debes indicar el email del cliente y tu ID de admin."
-            ]);
-            return; // 🔴 Detiene ejecución
-        }
-    } else {
-        if (!$email_cliente) {
-            echo json_encode([
-                'success' => false,
-                'message' => "Debes iniciar sesión para crear una reserva."
-            ]);
-            return; // 🔴 Detiene ejecución
-        }
-    }
-
-    $exito = $this->reservaModel->crearReserva(
-        $id_tipo_reserva,
-        $id_destino,
-        $fecha_entrada,
-        $hora_entrada,
-        $num_viajeros,
-        $id_vehiculo,
-        $numero_vuelo_entrada,
-        $origen_vuelo_entrada,
-        $fecha_vuelo_salida,
-        $hora_vuelo_salida,
-        $email_cliente
-    );
-
-    if ($exito) {
-        if ($this->isAdminLoggedIn()) {
-            $id_reserva = $this->reservaModel->getUltimaReservaId();
-            $this->reservaModel->guardarReservaAdmin($id_reserva, $id_admin);
-        }
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Reserva creada con éxito',
-            'id_reserva' => $this->reservaModel->getUltimaReservaId()
-        ]);
-        return; // 🔴 MUY IMPORTANTE
-    } else {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al crear la reserva'
-        ]);
-        return; // 🔴 MUY IMPORTANTE
-    }
-}
-
-
 
     public function misreservas()
     {
@@ -241,44 +163,7 @@ public function crearReservaPostApi() // POST
         ]);
     }
 
-    public function misreservasApi()
-{
-    header('Content-Type: application/json'); // 1. Especificar que la respuesta es JSON
-
-
-    $user_email = $_SESSION['user_email'];
-    $user_id    = $_SESSION['user_id'];
-
-    // 2. Lógica de negocio para obtener las reservas (la misma que en misreservas)
-    if ($user_email === 'admin@islatransfers.com') {
-        $reservas = $this->reservaModel->getTodasReservas();
-    } else {
-        $reservas = $this->reservaModel->getReservasPorEmail($user_email);
-    }
-
-    $hoteles = $this->hotelModel->getAll();
-    $hotelesMap = [];
-    foreach ($hoteles as $hotel) {
-        $hotelesMap[$hotel['id_hotel']] = $hotel['usuario'];
-    }
-    
-    // 4. Construir la respuesta JSON
-    $response = [
-        'status' => 'success',
-        'user_email' => $user_email,
-        'user_id' => $user_id,
-        'reservas_count' => count($reservas),
-        'reservas' => $reservas,
-        'hotelesMap' => $hotelesMap 
-    ];
-
-    // 5. Enviar la respuesta con código de estado 200 (OK)
-    http_response_code(200); 
-    echo json_encode($response);
-    exit;
-}
-
-    public function editar($id_reserva) //GET
+        public function editar($id_reserva) //GET
     {
         //se usa el modelo para obtener los datos de la reserva
         $reserva = $this->reservaModel->getReservaPorId($id_reserva);
@@ -375,6 +260,122 @@ public function crearReservaPostApi() // POST
 
 
     /** ------------------- METODOS DE LA API ----------------------- */
+
+    public function crearReservaPostApi() // POST
+{
+    header('Content-Type: application/json');
+    $this->requireMethod('POST');
+
+    $id_tipo_reserva = $_POST['id_tipo_reserva'] ?? null;
+    $id_destino = $_POST['id_destino'] ?? null;
+    $num_viajeros = $_POST['num_viajeros'] ?? 1;
+    $id_vehiculo = $_POST['id_vehiculo'] ?? 1;
+
+    $fecha_entrada = $_POST['fecha_entrada'] ?? null;
+    $hora_entrada = $_POST['hora_entrada'] ?? null;
+    $numero_vuelo_entrada = $_POST['numero_vuelo_entrada'] ?? null;
+    $origen_vuelo_entrada = $_POST['origen_vuelo_entrada'] ?? null;
+
+    $fecha_vuelo_salida = $_POST['fecha_vuelo_salida'] ?? null;
+    $hora_vuelo_salida = $_POST['hora_vuelo_salida'] ?? null;
+
+    $email_cliente = $_SESSION['user_email'] ?? null;
+    $id_admin = null;
+
+    if ($this->isAdminLoggedIn()) {
+        $email_cliente = $_POST['email_cliente'] ?? null;
+        $id_admin = $_POST['id_admin'] ?? null;
+
+        if (!$email_cliente || !$id_admin) {
+            echo json_encode([
+                'success' => false,
+                'message' => "Como administrador, debes indicar el email del cliente y tu ID de admin."
+            ]);
+            return;
+        }
+    } else {
+        if (!$email_cliente) {
+            echo json_encode([
+                'success' => false,
+                'message' => "Debes iniciar sesión para crear una reserva."
+            ]);
+            return; 
+        }
+    }
+
+    $exito = $this->reservaModel->crearReserva(
+        $id_tipo_reserva,
+        $id_destino,
+        $fecha_entrada,
+        $hora_entrada,
+        $num_viajeros,
+        $id_vehiculo,
+        $numero_vuelo_entrada,
+        $origen_vuelo_entrada,
+        $fecha_vuelo_salida,
+        $hora_vuelo_salida,
+        $email_cliente
+    );
+
+    if ($exito) {
+        if ($this->isAdminLoggedIn()) {
+            $id_reserva = $this->reservaModel->getUltimaReservaId();
+            $this->reservaModel->guardarReservaAdmin($id_reserva, $id_admin);
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Reserva creada con éxito',
+            'id_reserva' => $this->reservaModel->getUltimaReservaId()
+        ]);
+        return; 
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al crear la reserva'
+        ]);
+        return; 
+    }
+}
+
+    public function misreservasApi()
+{
+    header('Content-Type: application/json'); // 1. Especificar que la respuesta es JSON
+
+
+    $user_email = $_SESSION['user_email'];
+    $user_id    = $_SESSION['user_id'];
+
+    // 2. Lógica de negocio para obtener las reservas (la misma que en misreservas)
+    if ($user_email === 'admin@islatransfers.com') {
+        $reservas = $this->reservaModel->getTodasReservas();
+    } else {
+        $reservas = $this->reservaModel->getReservasPorEmail($user_email);
+    }
+
+    $hoteles = $this->hotelModel->getAll();
+    $hotelesMap = [];
+    foreach ($hoteles as $hotel) {
+        $hotelesMap[$hotel['id_hotel']] = $hotel['usuario'];
+    }
+    
+    // 4. Construir la respuesta JSON
+    $response = [
+        'status' => 'success',
+        'user_email' => $user_email,
+        'user_id' => $user_id,
+        'reservas_count' => count($reservas),
+        'reservas' => $reservas,
+        'hotelesMap' => $hotelesMap 
+    ];
+
+    // 5. Enviar la respuesta con código de estado 200 (OK)
+    http_response_code(200); 
+    echo json_encode($response);
+    exit;
+}
+
+
 
     public function cancelarApi($id_reserva)
     {
