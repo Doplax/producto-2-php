@@ -67,7 +67,7 @@ class ReservaController extends Controller
     /**
      * Procesar el formulario y crear la reserva
      */
-    public function crearReservaPost()
+    public function crearReservaPost() //POST
     {
         $this->requireMethod('POST');
 
@@ -144,7 +144,7 @@ class ReservaController extends Controller
         ]);
     }
 
-    public function editar($id_reserva)
+    public function editar($id_reserva) //GET
     {
         //se usa el modelo para obtener los datos de la reserva
         $reserva = $this->reservaModel->getReservaPorId($id_reserva);
@@ -175,7 +175,7 @@ class ReservaController extends Controller
         ]);
     }
 
-    public function editarPost($id_reserva)
+    public function editarPost($id_reserva) //POST
     {
 
         //los datos llegan por POST
@@ -205,7 +205,7 @@ class ReservaController extends Controller
         }
     }
 
-    public function cancelar($id_reserva)
+    public function cancelar($id_reserva) // POST
     {
         $this->requireMethod('POST');
 
