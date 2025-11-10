@@ -67,52 +67,71 @@ class ReservaController extends Controller
     /**
      * Procesar el formulario y crear la reserva
      */
-    public function crearReservaPost() //POST
-    {
-        $this->requireMethod('POST');
+public function crearReservaPost() //POST
+{
+    $this->requireMethod('POST');
 
-        $id_tipo_reserva = $_POST['id_tipo_reserva'] ?? null;
-        $id_destino = $_POST['id_destino'] ?? null;
-        $num_viajeros = $_POST['num_viajeros'] ?? 1;
-        $id_vehiculo = $_POST['id_vehiculo'] ?? 1;
+    $id_tipo_reserva = $_POST['id_tipo_reserva'] ?? null;
+    $id_destino = $_POST['id_destino'] ?? null;
+    $num_viajeros = $_POST['num_viajeros'] ?? 1;
+    $id_vehiculo = $_POST['id_vehiculo'] ?? 1;
 
-        $fecha_entrada = $_POST['fecha_entrada'] ?? null;
-        $hora_entrada = $_POST['hora_entrada'] ?? null;
-        $numero_vuelo_entrada = $_POST['numero_vuelo_entrada'] ?? null;
-        $origen_vuelo_entrada = $_POST['origen_vuelo_entrada'] ?? null;
+    $fecha_entrada = $_POST['fecha_entrada'] ?? null;
+    $hora_entrada = $_POST['hora_entrada'] ?? null;
+    $numero_vuelo_entrada = $_POST['numero_vuelo_entrada'] ?? null;
+    $origen_vuelo_entrada = $_POST['origen_vuelo_entrada'] ?? null;
 
-        $fecha_vuelo_salida = $_POST['fecha_vuelo_salida'] ?? null;
-        $hora_vuelo_salida = $_POST['hora_vuelo_salida'] ?? null;
+    $fecha_vuelo_salida = $_POST['fecha_vuelo_salida'] ?? null;
+    $hora_vuelo_salida = $_POST['hora_vuelo_salida'] ?? null;
 
+    $email_cliente = $_SESSION['user_email']; // NUEVA: email por defecto
+    $codigo_admin = null; // NUEVA: inicializamos
 
-        $exito = $this->reservaModel->crearReserva(
-            $id_tipo_reserva,
-            $id_destino,
-            $fecha_entrada,
-            $hora_entrada,
-            $num_viajeros,
-            $id_vehiculo,
-            $numero_vuelo_entrada,
-            $origen_vuelo_entrada,
-            $fecha_vuelo_salida,
-            $hora_vuelo_salida
-        );
+    if ($this->isAdminLoggedIn()) {
+        $email_cliente = $_POST['email_cliente'] ?? null; // NUEVA: email cliente admin
+        $codigo_admin = $_POST['codigo_admin'] ?? null;   // NUEVA: código admin
 
-        if ($exito) {
-            $_SESSION['mensaje_exito'] = ProfileMessageHelper::EXITO_RESERVA; //Separar responsabilidades
-            header("Location: " . APP_URL . "/reserva/misreservas");
+        if (!$email_cliente || !$codigo_admin) {          // NUEVA: validación admin
+            $_SESSION['mensaje_error'] = "Debes indicar email y código admin.";
+            header("Location: " . APP_URL . "/reserva/crear");
             exit;
-        } else {
-            // Enviar mensaje de error a la vista
-            $trayectos = $this->trayectoModel->getAllTrayectos();
-            $hoteles = $this->hotelModel->getAll();
-            $this->loadView('reservas/crear_reserva', [
-                'trayectos' => $trayectos,
-                'hoteles' => $hoteles,
-                'mensaje' => 'error_creacion'
-            ]);
         }
+    } // <- cierre del if admin
+
+    $exito = $this->reservaModel->crearReserva(
+        $id_tipo_reserva,
+        $id_destino,
+        $fecha_entrada,
+        $hora_entrada,
+        $num_viajeros,
+        $id_vehiculo,
+        $numero_vuelo_entrada,
+        $origen_vuelo_entrada,
+        $fecha_vuelo_salida,
+        $hora_vuelo_salida,
+        $email_cliente // NUEVA: pasamos email del cliente
+    );
+
+    if ($exito) {
+        if ($this->isAdminLoggedIn()) {
+            $id_reserva = $this->reservaModel->getUltimaReservaId(); // NUEVA: ID reserva creada
+            $this->reservaModel->guardarReservaAdmin($id_reserva, $codigo_admin); // NUEVA: guardar en reserva_admin
+        }
+
+        $_SESSION['mensaje_exito'] = ProfileMessageHelper::EXITO_RESERVA;
+        header("Location: " . APP_URL . "/reserva/misreservas");
+        exit;
+    } else {
+        $trayectos = $this->trayectoModel->getAllTrayectos();
+        $hoteles = $this->hotelModel->getAll();
+        $this->loadView('reservas/crear_reserva', [
+            'trayectos' => $trayectos,
+            'hoteles' => $hoteles,
+            'mensaje' => 'error_creacion'
+        ]);
     }
+}
+
 
     public function misreservas()
     {
@@ -143,6 +162,29 @@ class ReservaController extends Controller
             'reservasAdminMap' => $reservasAdminMap
         ]);
     }
+
+    public function misreservasApi()
+{
+    // Función para API / Postman
+    $user_email = $_SESSION['user_email'];
+
+    if ($this->isAdminLoggedIn()) {
+        $reservas = $this->reservaModel->getTodasReservas();
+    } else {
+        $reservas = $this->reservaModel->getReservasPorEmail($user_email);
+    }
+
+    $response = [
+        'status' => 'success',
+        'user_email' => $user_email,
+        'reservas' => $reservas
+    ];
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit;
+}
+
 
     public function editar($id_reserva) //GET
     {
