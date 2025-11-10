@@ -41,7 +41,7 @@ class ReservaController extends Controller
         $trayectos = $this->trayectoModel->getAllTrayectos();
 
         // Cargamos la vista con todos los datos necesarios
-        $this->loadView('reservas/crear_reserva', [
+        $this->loadView('reserva/crear_reserva', [
             'reservas' => $reservas,
             'hoteles' => $hoteles,
             'trayectos' => $trayectos,
@@ -57,7 +57,7 @@ class ReservaController extends Controller
         $trayectos = $this->trayectoModel->getAllTrayectos();
         $hoteles = $this->hotelModel->getAll();
 
-        $this->loadView('reservas/crear_reserva', [
+        $this->loadView('reserva/crear_reserva', [
             'trayectos' => $trayectos,
             'hoteles' => $hoteles
         ]);
@@ -98,7 +98,7 @@ class ReservaController extends Controller
         );
 
         if ($exito) {
-            header("Location: " . APP_URL . "/perfil/listarReservas");
+            header("Location: " . APP_URL . "/reserva/misreservas");
             exit;
         } else {
             // Enviar mensaje de error a la vista
@@ -112,7 +112,7 @@ class ReservaController extends Controller
         }
     }
 
-    public function listarReservas()
+    public function misreservas() // renombrado para que coincida con la vista antes listarReservas
     {
         $user_email = $_SESSION['user_email'];
         $user_id    = $_SESSION['user_id'];
@@ -135,5 +135,66 @@ class ReservaController extends Controller
             'hotelesMap' => $hotelesMap,
             'user_id'    => $user_id
         ]);
+    }
+
+    public function editar($id_reserva)
+    {
+        //se usa el modelo para obtener los datos de la reserva
+        $reserva = $this->reservaModel->getReservaPorId($id_reserva);
+
+        //comprueba que es admin o es el dueño de la reserva
+        if (!$reserva) {
+            header("Location: " . APP_URL . "/reserva/misreservas?mensaje=no_existe");
+            exit;
+        }
+        $esAdmin = $this->isAdminLoggedIn();
+        $esDueño = ($reserva['email_cliente'] === $_SESSION['user_email']);
+
+        if (!$esAdmin && !$esDueño) {
+            header("Location: " . APP_URL . "/reserva/misreservas?mensaje=no_autorizado");
+            exit;
+        }
+
+        // se obtienen los datos
+        $hoteles = $this->hotelModel->getAll();
+        $trayectos = $this->trayectoModel->getAllTrayectos();
+
+        //se carga la vista dle formulario de edición
+        $this->loadView('reservas/editar_reserva', [
+            'reserva' => $reserva,
+            'hoteles' => $hoteles,
+            'trayectos' => $trayectos,
+            'mensaje' => $_GET['mensaje'] ?? null
+        ]);
+    }
+
+    public function editarPost($id_reserva)
+    {
+
+        //los datos llegan por POST
+        $this->requireMethod('POST');
+
+        $reserva = $this->reservaModel->getReservaPorId($id_reserva);
+
+        $esAdmin = $this->isAdminLoggedIn();
+        $esDueño = ($reserva && $reserva['email_cliente'] === $_SESSION['user_email']);
+
+        if (!$esAdmin && !$esDueño) {
+            header("Location: " . APP_URL . "/reserva/misreservas?mensaje=no_autorizado");
+            exit;
+        }
+
+        //recoge los datos del formulario
+        $datos = $_POST;
+        //se llama al metodo actualizarReserva del modelo para actualizar la base de datos
+        $exito = $this->reservaModel->actualizarReserva($id_reserva, $datos);
+
+        if ($exito) {
+            header("Location: " . APP_URL . "/reserva/misreservas?mensaje=actualizado_ok");
+            exit;
+        } else {
+            header("Location: " . APP_URL . "/reserva/editar/" . $id_reserva . "?mensaje=error_actualizar");
+            exit;
+        }
     }
 }
