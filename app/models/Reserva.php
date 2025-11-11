@@ -51,14 +51,15 @@ class Reserva extends Model
         $numero_vuelo_entrada = null,
         $origen_vuelo_entrada = null,
         $fecha_vuelo_salida = null,
-        $hora_vuelo_salida = null
+        $hora_vuelo_salida = null,
+        $email_cliente = null
     ) {
-        // Comprobar que el usuario está logueado
+        
         if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_email'])) {
             return false;
         }
 
-        $email_cliente = $_SESSION['user_email'];
+        $email_cliente = $email_cliente ?: $_SESSION['user_email']; 
         $localizador = uniqid("LOC-");
         $fecha_actual = date("Y-m-d H:i:s");
 
@@ -114,6 +115,21 @@ class Reserva extends Model
 
         return $stmt->execute();
     }
+    public function getUltimaReservaId()
+    {
+    return $this->db->insert_id;
+}
+
+    public function guardarReservaAdmin($id_reserva, $codigo_admin)
+{
+    $sql = "INSERT INTO reserva_admin (id_reserva, id_admin) VALUES (?, ?)";
+    $stmt = $this->db->prepare($sql);
+    if ($stmt) {
+        $stmt->bind_param("is", $id_reserva, $codigo_admin);
+        return $stmt->execute();
+    }
+    return false;
+}
 
     /**
      * obener una reserva específica por su id
