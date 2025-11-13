@@ -12,28 +12,20 @@ main {
     background-color: #007bff !important; 
 }
 
-/* --- ESTA ES LA REGLA CORREGIDA --- */
+
 .hero h1 {
     color: #007bff;
 }
-/* ---------------------------------- */
 
-
-/* --- Avatar de Usuario para Navbar --- */
 .user-avatar {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    
-    /* Color de fondo y de la letra */
     background-color: #0d6efd;
     color: #ffffff;
-    
-    /* Para centrar la inicial perfectamente */
     display: flex;
     align-items: center;
     justify-content: center;
-    
     font-weight: bold;
     font-size: 0.9rem;
 }
@@ -43,12 +35,12 @@ main {
     align-items: center;
 }
 
-/* --- ESTILOS DEL CALENDARIO (MOVIDOS DE CALENDAR.PHP) --- */
 .calendar-table td {
     height: 120px;
     vertical-align: top;
     padding: 4px;
     overflow: hidden;
+    position: relative;
 }
 
 .cell-day {
@@ -57,6 +49,9 @@ main {
     text-align: left;
     padding-left: 5px;
     color: #6c757d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .calendar-table td.bg-light .cell-day {
@@ -75,6 +70,26 @@ main {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.cell-day .text-success {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #28a745;
+    color: #fff;
+    font-size: 14px; 
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.cell-day .text-success:hover {
+    background-color: #218838;
+    color: #fff;
+}
+
 
 /* Asegura que el menú desplegable se alinee a la derecha */
 @media (min-width: 992px) {

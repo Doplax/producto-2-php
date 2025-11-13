@@ -1,22 +1,15 @@
 <?php
 require 'nav.php';
 
-// Extraer variables de $data (enviadas por AdminController)
 $titulo_calendario = $data['titulo_calendario'] ?? 'Calendario';
 $reservas = $data['reservas'] ?? [];
 $vista = $data['vista'] ?? 'mes';
-/** @var \DateTime $fecha_base */
 $fecha_base = $data['fecha_base'];
-/** @var \DateTime $fecha_inicio_obj */
 $fecha_inicio_obj = $data['fecha_inicio_obj'];
-/** @var \DateTime $fecha_fin_obj */
 $fecha_fin_obj = $data['fecha_fin_obj'];
-/** @var \DateTime $fecha_anterior_nav */
 $fecha_anterior_nav = $data['fecha_anterior_nav'];
-/** @var \DateTime $fecha_siguiente_nav */
 $fecha_siguiente_nav = $data['fecha_siguiente_nav'];
 
-// Mapa de reservas por día
 $reservas_por_dia = [];
 foreach ($reservas as $res) {
     if (!empty($res['fecha_entrada'])) {
@@ -26,36 +19,30 @@ foreach ($reservas as $res) {
         $reservas_por_dia[$res['fecha_vuelo_salida']][] = $res;
     }
 }
+
+$hoy = new \DateTime('today');
 ?>
 
 <h1 class="display-6 fw-bold mb-4">Calendario de Reservas</h1>
 
 <div class="card shadow-sm border-0 rounded-lg">
     <div class="card-header text-center fs-4 fw-light">
-        
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <!-- BOTÓN ANTERIOR -->
-            <a href="<?php echo APP_URL; ?>/admin/calendar?vista=<?php echo $vista; ?>&ano=<?php echo $fecha_anterior_nav->format('Y'); ?>&mes=<?php echo $fecha_anterior_nav->format('m'); ?>&dia=<?php echo $fecha_anterior_nav->format('d'); ?>" 
-               class="btn btn-outline-primary calendar-nav">
+            <a href="<?php echo APP_URL; ?>/admin/calendar?vista=<?php echo $vista; ?>&ano=<?php echo $fecha_anterior_nav->format('Y'); ?>&mes=<?php echo $fecha_anterior_nav->format('m'); ?>&dia=<?php echo $fecha_anterior_nav->format('d'); ?>" class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left"></i> Anterior
             </a>
             
             <span class="fw-bold fs-4"><?php echo htmlspecialchars($titulo_calendario); ?></span>
             
-            <!-- BOTÓN SIGUIENTE -->
-            <a href="<?php echo APP_URL; ?>/admin/calendar?vista=<?php echo $vista; ?>&ano=<?php echo $fecha_siguiente_nav->format('Y'); ?>&mes=<?php echo $fecha_siguiente_nav->format('m'); ?>&dia=<?php echo $fecha_siguiente_nav->format('d'); ?>" 
-               class="btn btn-outline-primary calendar-nav">
+            <a href="<?php echo APP_URL; ?>/admin/calendar?vista=<?php echo $vista; ?>&ano=<?php echo $fecha_siguiente_nav->format('Y'); ?>&mes=<?php echo $fecha_siguiente_nav->format('m'); ?>&dia=<?php echo $fecha_siguiente_nav->format('d'); ?>" class="btn btn-outline-primary">
                 Siguiente <i class="bi bi-arrow-right"></i>
             </a>
         </div>
         
         <div class="btn-group w-100" role="group">
-            <a href="<?php echo APP_URL; ?>/admin/calendar?vista=mes&ano=<?php echo $fecha_base->format('Y'); ?>&mes=<?php echo $fecha_base->format('m'); ?>" 
-               class="btn btn-outline-secondary <?php if ($vista == 'mes') echo 'active'; ?>">Mes</a>
-            <a href="<?php echo APP_URL; ?>/admin/calendar?vista=semana&ano=<?php echo $fecha_base->format('Y'); ?>&mes=<?php echo $fecha_base->format('m'); ?>&dia=<?php echo $fecha_base->format('d'); ?>" 
-               class="btn btn-outline-secondary <?php if ($vista == 'semana') echo 'active'; ?>">Semana</a>
-            <a href="<?php echo APP_URL; ?>/admin/calendar?vista=dia&ano=<?php echo $fecha_base->format('Y'); ?>&mes=<?php echo $fecha_base->format('m'); ?>&dia=<?php echo $fecha_base->format('d'); ?>" 
-               class="btn btn-outline-secondary <?php if ($vista == 'dia') echo 'active'; ?>">Día</a>
+            <a href="<?php echo APP_URL; ?>/admin/calendar?vista=mes&ano=<?php echo date('Y'); ?>&mes=<?php echo date('m'); ?>" class="btn btn-outline-secondary <?php if ($vista == 'mes') echo 'active'; ?>">Mes</a>
+            <a href="<?php echo APP_URL; ?>/admin/calendar?vista=semana&ano=<?php echo date('Y'); ?>&mes=<?php echo date('m'); ?>&dia=<?php echo date('d'); ?>" class="btn btn-outline-secondary <?php if ($vista == 'semana') echo 'active'; ?>">Semana</a>
+            <a href="<?php echo APP_URL; ?>/admin/calendar?vista=dia&ano=<?php echo date('Y'); ?>&mes=<?php echo date('m'); ?>&dia=<?php echo date('d'); ?>" class="btn btn-outline-secondary <?php if ($vista == 'dia') echo 'active'; ?>">Día</a>
         </div>
     </div>
     
@@ -64,7 +51,13 @@ foreach ($reservas as $res) {
             <table class="table table-bordered text-center calendar-table" style="table-layout: fixed;">
                 <thead class="table-light">
                     <tr>
-                        <th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th>Sábado</th><th>Domingo</th>
+                        <th style="width: 14.28%;">Lunes</th>
+                        <th style="width: 14.28%;">Martes</th>
+                        <th style="width: 14.28%;">Miércoles</th>
+                        <th style="width: 14.28%;">Jueves</th>
+                        <th style="width: 14.28%;">Viernes</th>
+                        <th style="width: 14.28%;">Sábado</th>
+                        <th style="width: 14.28%;">Domingo</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -76,7 +69,10 @@ foreach ($reservas as $res) {
                         $dia_fin_grid->modify('sunday this week');
 
                         while ($dia_actual <= $dia_fin_grid):
-                            if ($dia_actual->format('N') == 1) echo '<tr>';
+                            if ($dia_actual->format('N') == 1) {
+                                echo '<tr>';
+                            }
+
                             $clase_css = ($dia_actual->format('m') != $fecha_base->format('m')) ? 'text-muted bg-light' : '';
                             $fecha_iso = $dia_actual->format('Y-m-d');
                     ?>
@@ -97,11 +93,23 @@ foreach ($reservas as $res) {
                                                 <?php echo htmlspecialchars(substr($hora, 0, 5)); ?>
                                                 <?php echo htmlspecialchars($res['nombre_hotel']); ?>
                                             </a>
-                                    <?php endforeach; endif; ?>
+                                    <?php
+                                        endforeach;
+                                    endif;
+
+                                    if ($dia_actual >= $hoy):
+                                    ?>
+                                        <div class="add-reserva-container">
+                                            <a href="<?php echo APP_URL; ?>/reserva/crear?fecha=<?php echo $fecha_iso; ?>" 
+                                               class="add-reserva-btn">+</a>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                     <?php
-                            if ($dia_actual->format('N') == 7) echo '</tr>';
+                            if ($dia_actual->format('N') == 7) {
+                                echo '</tr>';
+                            }
                             $dia_actual->modify('+1 day');
                         endwhile;
                     else:
@@ -116,8 +124,13 @@ foreach ($reservas as $res) {
                                 $icono = $es_llegada ? '<i class="bi bi-box-arrow-in-down"></i> Llegada' : '<i class="bi bi-box-arrow-up"></i> Salida';
                                 $fecha = $es_llegada ? $res['fecha_entrada'] : $res['fecha_vuelo_salida'];
                                 $hora = $es_llegada ? ($res['hora_entrada'] ?? '') : ($res['hora_recogida'] ?? '');
+
                                 echo '<li class="list-group-item d-flex justify-content-between align-items-center">';
-                                echo "<div><span class='badge bg-$color me-2'>$icono</span><strong>$fecha @ " . htmlspecialchars(substr($hora, 0, 5)) . "</strong> - " . htmlspecialchars($res['nombre_hotel']) . "</div>";
+                                echo '<div>';
+                                echo "<span class='badge bg-$color me-2'>$icono</span>";
+                                echo "<strong>" . htmlspecialchars($fecha) . " @ " . htmlspecialchars(substr($hora, 0, 5)) . "</strong> - ";
+                                echo htmlspecialchars($res['nombre_hotel']) . " (" . htmlspecialchars($res['num_viajeros']) . " pax)";
+                                echo '</div>';
                                 echo '<a href="' . APP_URL . '/reserva/editar/' . $res['id_reserva'] . '" class="btn btn-sm btn-outline-secondary">Ver/Editar</a>';
                                 echo '</li>';
                             }
@@ -129,3 +142,11 @@ foreach ($reservas as $res) {
                 </tbody>
             </table>
         </div>
+        
+        <div class="p-3 border-top bg-light">
+            <span class="badge bg-success me-2"><i class="bi bi-box-arrow-in-down"></i> Llegada</span>
+            <span class="badge bg-danger me-2"><i class="bi bi-box-arrow-up"></i> Salida</span>
+            <span class="text-muted small ms-2">(Haz clic en una reserva para ver/editar)</span>
+        </div>
+    </div>
+</div>
