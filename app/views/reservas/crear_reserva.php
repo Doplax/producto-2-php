@@ -23,12 +23,12 @@ $mensaje = $data['mensaje'] ?? null;
 <!-- Tarjeta con el Formulario -->
 <div class="card shadow-sm border">
     <div class="card-body p-4">
-        
+
         <form action="<?php echo APP_URL; ?>/reserva/crearReservaPost" method="POST" id="formReserva">
 
             <!-- Fila 1: Tipo de Reserva y Destino -->
             <div class="row g-3 mb-3">
-                
+
                 <!-- Tipo de Reserva -->
                 <div class="col-md-6">
                     <label for="id_tipo_reserva" class="form-label">Tipo de Trayecto</label>
@@ -45,17 +45,18 @@ $mensaje = $data['mensaje'] ?? null;
                     <label for="id_destino" class="form-label">Hotel (Destino o Recogida)</label>
                     <select id="id_destino" name="id_destino" class="form-select" required>
                         <option value="" selected disabled>Selecciona un hotel...</option>
-                        
+
                         <?php if (!empty($hoteles)): ?>
                             <?php foreach ($hoteles as $hotel): ?>
                                 <option value="<?php echo htmlspecialchars($hotel['id_hotel']); ?>">
-                                    <?php echo htmlspecialchars($hotel['usuario']); // Asumimos que 'usuario' es el nombre del hotel ?>
+                                    <?php echo htmlspecialchars($hotel['usuario']); // Asumimos que 'usuario' es el nombre del hotel 
+                                    ?>
                                 </option>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <option value="" disabled>No hay hoteles disponibles</option>
                         <?php endif; ?>
-                        
+
                     </select>
                 </div>
             </div>
@@ -66,22 +67,13 @@ $mensaje = $data['mensaje'] ?? null;
                 <input type="number" id="num_viajeros" name="num_viajeros" class="form-control" min="1" value="1" required>
             </div>
 
-            <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 'admin' ): ?>
-                <div class="mb-3">
-                    <label for="email_cliente" class="form-label fw-bold">Email del Cliente (para la reserva)</label>
-                    <input type="email" id="email_cliente" name="email_cliente"   class="form-control" placeholder="ejemplo@cliente.com" required>
-                    <small class="text-muted">El admin debe rellenar esto para asignar la reserva al cliente correcto.</small>
-                </div>
-            <?php endif; ?>
 
-            <hr class="my-4">
 
-            <hr class="my-4">
 
             <!-- Sección de Llegada (Oculta por defecto) -->
             <div id="camposLlegada" style="display: none;">
                 <h4 class="h5">Detalles de Llegada (Aeropuerto a Hotel)</h4>
-                
+
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label for="fecha_entrada" class="form-label">Fecha de Llegada</label>
@@ -107,8 +99,8 @@ $mensaje = $data['mensaje'] ?? null;
             <!-- Sección de Salida (Oculta por defecto) -->
             <div id="camposSalida" style="display: none;">
                 <h4 class="h5">Detalles de Salida (Hotel a Aeropuerto)</h4>
-                
-                 <div class="row g-3 mb-3">
+
+                <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label for="fecha_vuelo_salida" class="form-label">Fecha de Salida(Vuelo)</label>
                         <input type="date" id="fecha_vuelo_salida" name="fecha_vuelo_salida" class="form-control">
@@ -137,15 +129,15 @@ $mensaje = $data['mensaje'] ?? null;
                     <div class="col-md-6">
                         <label for="email_cliente" class="form-label">Email del Cliente</label>
                         <input type="email" id="email_cliente" name="email_cliente" class="form-control"
-                placeholder="cliente@correo.com" required>
-            </div>
-            <div class="col-md-6">
-            <label for="codigo_admin" class="form-label">Código del Administrador</label>
-            <input type="text" id="codigo_admin" name="codigo_admin" class="form-control"
-                placeholder="Ej: ADM123" required>
-        </div>
-    </div>
-<?php endif; ?>
+                            placeholder="cliente@correo.com" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="codigo_admin" class="form-label">ID de Administrador</label>
+                        <input type="number" id="codigo_admin" name="codigo_admin" class="form-control"
+                            placeholder="Ej: 4" required>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <!-- Botón de Enviar -->
             <div class="text-end mt-4">
@@ -160,7 +152,7 @@ $mensaje = $data['mensaje'] ?? null;
 <!-- JavaScript para mostrar/ocultar campos del formulario -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        
+
         const tipoReservaSelect = document.getElementById('id_tipo_reserva');
         const camposLlegada = document.getElementById('camposLlegada');
         const camposSalida = document.getElementById('camposSalida');
@@ -182,12 +174,12 @@ $mensaje = $data['mensaje'] ?? null;
                 // Tipo 1: Aeropuerto a Hotel
                 camposLlegada.style.display = 'block';
                 inputsLlegada.forEach(input => input.required = true);
-            
+
             } else if (tipo === '2') {
                 // Tipo 2: Hotel a Aeropuerto
                 camposSalida.style.display = 'block';
                 inputsSalida.forEach(input => input.required = true);
-            
+
             } else if (tipo === '3') {
                 // Tipo 3: Ida y Vuelta
                 camposLlegada.style.display = 'block';
@@ -208,15 +200,15 @@ $mensaje = $data['mensaje'] ?? null;
 <!-- Script para la alerta de error (si existe) -->
 <?php if ($mensaje): ?>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const alertElement = document.getElementById('alertaTemporal');
-        if (alertElement) {
-            setTimeout(() => {
-                alertElement.style.transition = 'opacity 0.5s ease-out';
-                alertElement.style.opacity = '0';
-                setTimeout(() => alertElement.remove(), 500);
-            }, 4000); // 4 segundos
-        }
-    });
+        document.addEventListener('DOMContentLoaded', function() {
+            const alertElement = document.getElementById('alertaTemporal');
+            if (alertElement) {
+                setTimeout(() => {
+                    alertElement.style.transition = 'opacity 0.5s ease-out';
+                    alertElement.style.opacity = '0';
+                    setTimeout(() => alertElement.remove(), 500);
+                }, 4000); // 4 segundos
+            }
+        });
     </script>
 <?php endif; ?>
