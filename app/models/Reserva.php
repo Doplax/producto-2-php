@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Core\Model;
-use App\Models\Reserva;
+
 
 class Reserva extends Model
 {
@@ -76,7 +76,7 @@ class Reserva extends Model
 
         // Usamos las mismas fechas para ambos rangos (llegada y salida)
         $stmt->bind_param("ssss", $fecha_inicio, $fecha_fin, $fecha_inicio, $fecha_fin);
-        
+
         $stmt->execute();
         $result = $stmt->get_result();
 
@@ -101,12 +101,12 @@ class Reserva extends Model
         $numero_vuelo_salida = null,
         $hora_recogida = null
     ) {
-        
+
         if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_email'])) {
             return false;
         }
 
-        $email_cliente = $email_cliente ?: $_SESSION['user_email']; 
+        $email_cliente = $email_cliente ?: $_SESSION['user_email'];
         $localizador = uniqid("LOC-");
         $fecha_actual = date("Y-m-d H:i:s");
 
@@ -135,7 +135,10 @@ class Reserva extends Model
         $hora_recogida = $hora_recogida ? date('H:i:s', strtotime($hora_recogida)) : null;
 
         $sql = "INSERT INTO transfer_reservas 
-        (localizador, id_tipo_reserva, email_cliente, fecha_reserva, fecha_modificacion, id_destino, fecha_entrada, hora_entrada, numero_vuelo_entrada, origen_vuelo_entrada, fecha_vuelo_salida, hora_vuelo_salida, num_viajeros, id_vehiculo, numero_vuelo_salida, hora_recogida)
+        (localizador, id_tipo_reserva, email_cliente, fecha_reserva, fecha_modificacion, id_destino, 
+         fecha_entrada, hora_entrada, numero_vuelo_entrada, origen_vuelo_entrada, 
+         fecha_vuelo_salida, hora_vuelo_salida, numero_vuelo_salida, hora_recogida, 
+         num_viajeros, id_vehiculo)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->db->prepare($sql);
@@ -146,7 +149,7 @@ class Reserva extends Model
 
         // Para manejar NULL correctamente en MySQL, se usa "s" y pasar null directamente
         $stmt->bind_param(
-            "sisssissssssiiiss",
+            "sisssissssssssii",
             $localizador,
             $id_tipo_reserva,
             $email_cliente,
@@ -159,29 +162,48 @@ class Reserva extends Model
             $origen_vuelo_entrada,
             $fecha_vuelo_salida,
             $hora_vuelo_salida,
-            $num_viajeros,
-            $id_vehiculo,
             $numero_vuelo_salida,
-            $hora_recogida
+            $hora_recogida,
+            $num_viajeros,
+            $id_vehiculo
         );
 
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            return $localizador; //devuleve un localizador que se enviará al usuario por email
+        } else {
+            return false;
+        }
     }
+
     public function getUltimaReservaId()
     {
-    return $this->db->insert_id;
-}
+        return $this->db->insert_id;
+    }
 
     public function guardarReservaAdmin($id_reserva, $codigo_admin)
-{
-    $sql = "INSERT INTO reserva_admin (id_reserva, id_admin) VALUES (?, ?)";
-    $stmt = $this->db->prepare($sql);
-    if ($stmt) {
-        $stmt->bind_param("is", $id_reserva, $codigo_admin);
-        return $stmt->execute();
+    {
+        if (empty($id_reserva) || empty($codigo_admin)) {
+            error_log("guardarReservaAdmin: parámetros vacíos");
+            return false;
+        }
+
+        // Forzar enteros
+        $id_reserva = (int)$id_reserva;
+        $codigo_admin = (int)$codigo_admin;
+
+        if ($id_reserva <= 0 || $codigo_admin <= 0) {
+            error_log("guardarReservaAdmin: parámetros no válidos");
+            return false;
+        }
+
+        $sql = "INSERT INTO reserva_admin (id_reserva, id_admin) VALUES (?, ?)";
+        $stmt = $this->db->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param("ii", $id_reserva, $codigo_admin);
+            return $stmt->execute();
+        }
+        return false;
     }
-    return false;
-}
 
     /**
      * obener una reserva específica por su id
@@ -270,8 +292,8 @@ class Reserva extends Model
         }
 
         //se vinculan los parámetros
-$stmt->bind_param(
-            "iisssssssissi", 
+        $stmt->bind_param(
+            "iisssssssissi",
             $id_tipo_reserva,
             $id_destino,
             $fecha_actual,
@@ -284,7 +306,7 @@ $stmt->bind_param(
             $num_viajeros,
             $numero_vuelo_salida,
             $hora_recogida,
-            $id_reserva 
+            $id_reserva
         );
 
         return $stmt->execute();

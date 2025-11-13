@@ -30,3 +30,8 @@ CREATE TABLE reserva_admin (
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_reserva) REFERENCES transfer_reservas(id_reserva) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- modificación tabla reservas para guardar hora recogida, y que la hora de salida debe ir después de llegada
+ALTER TABLE transfer_reservas
+ADD COLUMN numero_vuelo_salida VARCHAR(20) NULL DEFAULT NULL AFTER hora_vuelo_salida,
+ADD COLUMN hora_recogida TIME NULL DEFAULT NULL AFTER numero_vuelo_salida;
