@@ -1,10 +1,11 @@
 <!-- app/views/admin/dashboard.php -->
+<?php require 'nav.php'; ?>
 
-<h1 class="display-6 fw-bold mb-4">Administration Dashboard</h1>
+<h1 class="display-6 fw-bold mb-4">Información General</h1>
 
 <!-- Stats Cards Row -->
 <div class="row g-4">
-    
+
     <!-- Card 1: Pending Reservations -->
     <div class="col-md-6 col-lg-4">
         <div class="card text-bg-primary shadow-sm h-100">
@@ -12,7 +13,7 @@
                 <h5 class="card-title fs-4">Pending Reservations</h5>
                 <!-- A number from PHP would go here, e.g., <?php echo $pendingReservations; ?> -->
                 <p class="card-text display-4 fw-bold">8</p>
-                <a href="<?php echo APP_URL; ?>/admin/reservas" class="stretched-link text-white">View details</a>
+                <a href="<?php echo APP_URL; ?>/reserva/misreservas" class="stretched-link text-white">View details</a>
             </div>
         </div>
     </div>
@@ -40,6 +41,23 @@
             </div>
         </div>
     </div>
+</div>
+</div>
+</div>
+<!-- Card 4: Hoteles -->
+<div class="col-md-6 col-lg-4">
+    <div class="card text-bg-secondary shadow-sm h-100">
+        <div class="card-body">
+            <h5 class="card-title fs-4">Hoteles Activos</h5>
+
+            <p class="card-text display-4 fw-bold"><?php echo $data['totalHoteles'] ?? 0; ?></p>
+
+            <a href="<?php echo APP_URL; ?>/admin/hoteles" class="stretched-link text-white">Gestionar Hoteles</a>
+        </div>
+    </div>
+</div>
+</div>
+<div class="card shadow-sm border-0 rounded-lg mt-5">
 </div>
 
 <!-- Upcoming Reservations (Table) -->
@@ -83,4 +101,3 @@
         </div>
     </div>
 </div>
-
