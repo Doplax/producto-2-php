@@ -226,4 +226,5 @@ public function eliminarHotel($id)
 
     die("Error al eliminar hotel");
 }
+
 }
