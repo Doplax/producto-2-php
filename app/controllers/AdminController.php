@@ -30,33 +30,26 @@ class AdminController extends Controller
         $this->dashboard();
     }
 
-public function dashboard()
+    public function dashboard()
     {
-        // Obtener hoteles y contarlos (esto ya lo tenías)
         $hoteles = $this->hotelModel->getAll();
         $totalHoteles = $hoteles ? count($hoteles) : 0;
 
-        // [NUEVO] Crear el mapa de hoteles (para mostrar nombres en la tabla)
         $hotelesMap = [];
         foreach ($hoteles as $hotel) {
-            // Asumiendo que 'usuario' es el nombre del hotel, 
-            // igual que en tu ReservaController
-            $hotelesMap[$hotel['id_hotel']] = $hotel['usuario']; 
+            $hotelesMap[$hotel['id_hotel']] = $hotel['usuario'];
         }
 
-        // [NUEVO] Obtener las reservas
-        // Usamos el mismo método que en ReservaController para admin
         $reservas = $this->reservaModel->getTodasReservas();
 
-        // [MODIFICADO] Pasar los nuevos datos a la vista
         $data = [
-            'title'          => 'Admin Dashboard',
-            'totalHoteles'   => $totalHoteles,
-            'reservas'       => $reservas ?? [], // Pasamos las reservas
-            'hotelesMap'     => $hotelesMap,     // Pasamos el mapa de hoteles
-            'vista_actual'   => 'dashboard'
+            'title'        => 'Admin Dashboard',
+            'totalHoteles' => $totalHoteles,
+            'reservas'     => $reservas,
+            'hotelesMap'   => $hotelesMap,
+            'vista_actual' => 'dashboard'
         ];
-        
+
         $this->loadView('admin/dashboard', $data);
     }
 
@@ -68,86 +61,90 @@ public function dashboard()
         $this->loadView('admin/reservations', $data);
     }
 
-public function calendar()
-{
-    // Obtener la vista y la fecha base desde GET, con fallback a hoy
-    $vista = $_GET['vista'] ?? 'mes';
-    $ano   = (int)($_GET['ano'] ?? date('Y'));
-    $mes   = (int)($_GET['mes'] ?? date('m'));
-    $dia   = (int)($_GET['dia'] ?? date('d'));
+    public function calendar()
+    {
+        // Obtener la vista y la fecha base desde GET, con fallback a hoy
+        $vista = $_GET['vista'] ?? 'mes';
+        $ano   = (int)($_GET['ano'] ?? date('Y'));
+        $mes   = (int)($_GET['mes'] ?? date('m'));
+        $dia   = (int)($_GET['dia'] ?? date('d'));
 
-    try {
-        $fecha_base = new \DateTime("$ano-$mes-$dia");
-    } catch (\Exception $e) {
-        $fecha_base = new \DateTime('now');
+        try {
+            $fecha_base = new \DateTime("$ano-$mes-$dia");
+        } catch (\Exception $e) {
+            $fecha_base = new \DateTime('now');
+        }
+
+        // Calcular fecha_inicio y fecha_fin según la vista
+        switch ($vista) {
+            case 'dia':
+                $fecha_inicio_dt = clone $fecha_base;
+                $fecha_fin_dt = clone $fecha_base;
+                $titulo_calendario = 'Día ' . $fecha_base->format('d/m/Y');
+                break;
+
+            case 'semana':
+                $fecha_inicio_dt = (clone $fecha_base)->modify('monday this week');
+                $fecha_fin_dt = (clone $fecha_inicio_dt)->modify('+6 days');
+                $titulo_calendario = 'Semana del ' . $fecha_inicio_dt->format('d/m') . ' al ' . $fecha_fin_dt->format('d/m/Y');
+                break;
+
+            case 'mes':
+            default:
+                $fecha_inicio_dt = (clone $fecha_base)->modify('first day of this month');
+                $fecha_fin_dt = (clone $fecha_base)->modify('last day of this month');
+
+                $formatter = new \IntlDateFormatter(
+                    'es_ES',
+                    \IntlDateFormatter::NONE,
+                    \IntlDateFormatter::NONE,
+                    null,
+                    null,
+                    "LLLL 'de' yyyy"
+                );
+                $titulo_calendario = $formatter->format($fecha_base);
+                break;
+        }
+
+        // Obtener reservas del modelo
+        $fecha_inicio = $fecha_inicio_dt->format('Y-m-d');
+        $fecha_fin = $fecha_fin_dt->format('Y-m-d');
+        $reservas = $this->reservaModel->getReservasPorRango($fecha_inicio, $fecha_fin);
+
+        // Calcular botones de navegación correctamente según la vista
+        switch ($vista) {
+            case 'dia':
+                $fecha_anterior_nav = (clone $fecha_base)->modify('-1 day');
+                $fecha_siguiente_nav = (clone $fecha_base)->modify('+1 day');
+                break;
+            case 'semana':
+                $fecha_anterior_nav = (clone $fecha_base)->modify('-1 week');
+                $fecha_siguiente_nav = (clone $fecha_base)->modify('+1 week');
+                break;
+            case 'mes':
+            default:
+                $fecha_anterior_nav = (clone $fecha_base)->modify('first day of last month');
+                $fecha_siguiente_nav = (clone $fecha_base)->modify('first day of next month');
+                break;
+        }
+
+        $data = [
+            'title'             => 'Admin - Calendario',
+            'titulo_calendario' => ucwords($titulo_calendario),
+            'reservas'          => $reservas,
+
+            'fecha_anterior_nav' => $fecha_anterior_nav,
+            'fecha_siguiente_nav' => $fecha_siguiente_nav,
+
+            'fecha_base'        => $fecha_base,
+            'vista'             => $vista,
+            'fecha_inicio_obj'  => $fecha_inicio_dt,
+            'fecha_fin_obj'     => $fecha_fin_dt,
+            'vista_actual'      => 'calendar'
+        ];
+
+        $this->loadView('admin/calendar', $data);
     }
-
-    // Calcular fecha_inicio y fecha_fin según la vista
-    switch ($vista) {
-        case 'dia':
-            $fecha_inicio_dt = clone $fecha_base;
-            $fecha_fin_dt = clone $fecha_base;
-            $titulo_calendario = 'Día ' . $fecha_base->format('d/m/Y');
-            break;
-
-        case 'semana':
-            $fecha_inicio_dt = (clone $fecha_base)->modify('monday this week');
-            $fecha_fin_dt = (clone $fecha_inicio_dt)->modify('+6 days');
-            $titulo_calendario = 'Semana del ' . $fecha_inicio_dt->format('d/m') . ' al ' . $fecha_fin_dt->format('d/m/Y');
-            break;
-
-        case 'mes':
-        default:
-            $fecha_inicio_dt = (clone $fecha_base)->modify('first day of this month');
-            $fecha_fin_dt = (clone $fecha_base)->modify('last day of this month');
-
-            $formatter = new \IntlDateFormatter(
-                'es_ES', \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, null, null, "LLLL 'de' yyyy"
-            );
-            $titulo_calendario = $formatter->format($fecha_base);
-            break;
-    }
-
-    // Obtener reservas del modelo
-    $fecha_inicio = $fecha_inicio_dt->format('Y-m-d');
-    $fecha_fin = $fecha_fin_dt->format('Y-m-d');
-    $reservas = $this->reservaModel->getReservasPorRango($fecha_inicio, $fecha_fin);
-
-    // Calcular botones de navegación correctamente según la vista
-    switch ($vista) {
-        case 'dia':
-            $fecha_anterior_nav = (clone $fecha_base)->modify('-1 day');
-            $fecha_siguiente_nav = (clone $fecha_base)->modify('+1 day');
-            break;
-        case 'semana':
-            $fecha_anterior_nav = (clone $fecha_base)->modify('-1 week');
-            $fecha_siguiente_nav = (clone $fecha_base)->modify('+1 week');
-            break;
-        case 'mes':
-        default:
-            $fecha_anterior_nav = (clone $fecha_base)->modify('first day of last month');
-            $fecha_siguiente_nav = (clone $fecha_base)->modify('first day of next month');
-            break;
-    }
-
-    // Preparar datos para la vista
-    $data = [
-        'title'             => 'Admin - Calendario',
-        'titulo_calendario' => ucwords($titulo_calendario),
-        'reservas'          => $reservas,
-
-        'fecha_anterior_nav' => $fecha_anterior_nav,
-        'fecha_siguiente_nav' => $fecha_siguiente_nav,
-
-        'fecha_base'        => $fecha_base,
-        'vista'             => $vista,
-        'fecha_inicio_obj'  => $fecha_inicio_dt,
-        'fecha_fin_obj'     => $fecha_fin_dt,
-        'vista_actual'      => 'calendar'
-    ];
-
-    $this->loadView('admin/calendar', $data);
-}
 
 
     // --- Resto de métodos (hoteles, API, etc.) igual que antes ---
@@ -166,65 +163,64 @@ public function calendar()
     }
 
     public function crearHotelPost()
-{
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-        $usuario = $_POST['usuario'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $comision = $_POST['comision'] ?? 0;
+            $usuario = $_POST['usuario'] ?? '';
+            $password = $_POST['password'] ?? '';
+            $comision = $_POST['comision'] ?? 0;
 
-        if ($this->hotelModel->crearHotel($usuario, $password, $comision)) {
-            header("Location: " . APP_URL . "/admin/hoteles");
-            exit;
+            if ($this->hotelModel->crearHotel($usuario, $password, $comision)) {
+                header("Location: " . APP_URL . "/admin/hoteles");
+                exit;
+            }
+
+            die("Error al crear hotel");
         }
-
-        die("Error al crear hotel");
     }
-}
 
     public function editarHotel($id)
-{
-    $hotel = $this->hotelModel->getById((int)$id);
+    {
+        $hotel = $this->hotelModel->getById((int)$id);
 
-    if (!$hotel) {
-        die("Hotel no encontrado");
-    }
+        if (!$hotel) {
+            die("Hotel no encontrado");
+        }
 
-    $data = [
-        'title' => 'Editar Hotel',
-        'hotel' => $hotel
-    ];
-
-    $this->loadView('admin/editarHotel', $data);
-}
-
-public function editarHotelPost($id)
-{
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-        $datos = [
-            'usuario' => $_POST['usuario'] ?? '',
-            'comision' => $_POST['comision'] ?? 0,
-            'password' => $_POST['password'] ?? null
+        $data = [
+            'title' => 'Editar Hotel',
+            'hotel' => $hotel
         ];
 
-        if ($this->hotelModel->actualizarHotel((int)$id, $datos)) {
+        $this->loadView('admin/editarHotel', $data);
+    }
+
+    public function editarHotelPost($id)
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+            $datos = [
+                'usuario' => $_POST['usuario'] ?? '',
+                'comision' => $_POST['comision'] ?? 0,
+                'password' => $_POST['password'] ?? null
+            ];
+
+            if ($this->hotelModel->actualizarHotel((int)$id, $datos)) {
+                header("Location: " . APP_URL . "/admin/hoteles");
+                exit;
+            }
+
+            die("Error al actualizar hotel");
+        }
+    }
+
+    public function eliminarHotel($id)
+    {
+        if ($this->hotelModel->eliminarHotel((int)$id)) {
             header("Location: " . APP_URL . "/admin/hoteles");
             exit;
         }
 
-        die("Error al actualizar hotel");
+        die("Error al eliminar hotel");
     }
-}
-
-public function eliminarHotel($id)
-{
-    if ($this->hotelModel->eliminarHotel((int)$id)) {
-        header("Location: " . APP_URL . "/admin/hoteles");
-        exit;
-    }
-
-    die("Error al eliminar hotel");
-}
-
 }
