@@ -19,4 +19,10 @@ COPY . /var/www/html/
 
 WORKDIR /var/www/html/
 
-RUN chown -R www-data:www-data /var/www/html
+# Set proper permissions for Laravel
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
+
+# Install dependencies if vendor doesn't exist
+RUN if [ ! -d "vendor" ]; then composer install --no-dev --optimize-autoloader; fi
