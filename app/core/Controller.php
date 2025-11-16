@@ -6,7 +6,7 @@ class Controller
 {
     public function __construct() {}
 
-    protected function loadView($viewName, $data = [])
+    public function loadView($viewName, $data = [])
     {
         extract($data);
 
@@ -60,6 +60,29 @@ class Controller
         // Llama a la función de chequeo que acabamos de crear
         if (!$this->isUserLoggedIn()) {
 
+            // Si devuelve false, redirige al login y detiene todo
+            header('Location: ' . APP_URL . '/auth/login');
+            exit;
+        }
+    }
+
+    /**
+     *  comprueba si el administrador ha iniciado sesión
+     */
+    protected function isAdminLoggedIn(): bool
+    {
+        // Devuelve true si el usuario he hecho loggedin y 'user_email' es admin@islatransfers.com
+
+        return isset($_SESSION['user_email']) && $_SESSION['user_email'] === 'admin@islatransfers.com';
+    }
+
+    /**
+     * Protege un controlador (o un método).
+     * Se utiliza en el constructor del controlador para asegurar que el usuario esté logueado.
+     */
+    protected function requiereAdminGuard()
+    {
+        if (!$this->isAdminLoggedIn()) {
             // Si devuelve false, redirige al login y detiene todo
             header('Location: ' . APP_URL . '/auth/login');
             exit;
